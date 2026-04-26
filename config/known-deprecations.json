@@ -1,0 +1,202 @@
+{
+  "_comment": "Mapping des APIs dépréciées par saut de version + bugs connus contrib + modules retirés du core.",
+  "D9_to_D10": {
+    "php_functions": [
+      { "deprecated": "drupal_set_message\\(", "replacement": "\\Drupal::messenger()->addMessage(", "type": "regex", "severity": "error", "note": "Supprimé en D10. Aussi addStatus(), addWarning(), addError() selon le type." },
+      { "deprecated": "db_query\\(", "replacement": "\\Drupal::database()->query(", "type": "regex", "severity": "error" },
+      { "deprecated": "db_insert\\(", "replacement": "\\Drupal::database()->insert(", "type": "regex", "severity": "error" },
+      { "deprecated": "db_update\\(", "replacement": "\\Drupal::database()->update(", "type": "regex", "severity": "error" },
+      { "deprecated": "db_delete\\(", "replacement": "\\Drupal::database()->delete(", "type": "regex", "severity": "error" },
+      { "deprecated": "db_select\\(", "replacement": "\\Drupal::database()->select(", "type": "regex", "severity": "error" },
+      { "deprecated": "node_load\\(", "replacement": "\\Drupal\\\\node\\\\Entity\\\\Node::load(", "type": "regex", "severity": "error" },
+      { "deprecated": "user_load\\(", "replacement": "\\Drupal\\\\user\\\\Entity\\\\User::load(", "type": "regex", "severity": "error" },
+      { "deprecated": "file_load\\(", "replacement": "\\Drupal\\\\file\\\\Entity\\\\File::load(", "type": "regex", "severity": "error" },
+      { "deprecated": "taxonomy_term_load\\(", "replacement": "\\Drupal\\\\taxonomy\\\\Entity\\\\Term::load(", "type": "regex", "severity": "error" },
+      { "deprecated": "drupal_render\\(", "replacement": "\\Drupal::service('renderer')->render(", "type": "regex", "severity": "error" },
+      { "deprecated": "format_date\\(", "replacement": "\\Drupal::service('date.formatter')->format(", "type": "regex", "severity": "error" },
+      { "deprecated": "drupal_get_path\\(", "replacement": "\\Drupal::service('extension.list.module')->getPath(", "type": "regex", "severity": "error" },
+      { "deprecated": "drupal_get_filename\\(", "replacement": "\\Drupal::service('extension.list.module')->getPathname(", "type": "regex", "severity": "error" }
+    ],
+    "hooks": [
+      { "deprecated": "hook_node_info", "replacement": "Supprimé — utiliser content type config YAML", "severity": "error", "manual": true },
+      { "deprecated": "hook_field_info", "replacement": "Annotation FieldType plugin", "severity": "error", "manual": true }
+    ],
+    "info_yml": {
+      "core_version_requirement": "^9 || ^10",
+      "pattern": "core_version_requirement:\\s*\\^9",
+      "replacement": "core_version_requirement: ^9 || ^10"
+    },
+    "twig": [
+      { "deprecated": "{{ dump() }}", "replacement": "{{ kint() }} (si devel installé) ou supprimer", "severity": "warning" }
+    ]
+  },
+  "D10_to_D11": {
+    "php_functions": [
+      {
+        "deprecated": "theme_get_setting\\(",
+        "replacement": "\\Drupal::theme()->getActiveTheme()->getExtension()->getPath()",
+        "type": "regex",
+        "severity": "warning",
+        "note": "Déprécié en D10, toujours fonctionnel en D11 mais supprimé en D12."
+      }
+    ],
+    "php_return_types": {
+      "_comment": "D11 enforce strict return types — absence de ': void' cause un Fatal Error.",
+      "grep_command": "grep -rn 'public function validateExposed\\|public function submitForm\\|public function validateForm' MODULE_PATH/ --include='*.php' | grep -v ': void' | grep -v interface | grep -v abstract",
+      "void_required": [
+        {
+          "pattern": "public function validateExposed\\(&\\$form,",
+          "fix": "Ajouter ': void' → public function validateExposed(&$form, FormStateInterface $form_state): void",
+          "parent_class": "Drupal\\views\\Plugin\\views\\filter\\FilterPluginBase",
+          "severity": "error",
+          "note": "Pattern récurrent dans tout plugin Views filter (découvert token_views_filter)."
+        },
+        {
+          "pattern": "public function submitForm\\(",
+          "fix": "Ajouter ': void' → public function submitForm(array &$form, FormStateInterface $form_state): void",
+          "severity": "error"
+        },
+        {
+          "pattern": "public function validateForm\\(",
+          "fix": "Ajouter ': void' → public function validateForm(array &$form, FormStateInterface $form_state): void",
+          "severity": "error"
+        }
+      ]
+    },
+    "symfony_7": {
+      "_comment": "D11 upgrade Symfony 6→7. Breaking changes dans les event subscribers, console commands, HTTP kernel.",
+      "grep_command": "grep -rn 'GetResponseEvent\\|ContainerAwareCommand\\|Symfony\\\\Component\\\\EventDispatcher\\\\Event\\b\\|GetResponseForExceptionEvent\\|PostResponseEvent' MODULE_PATH/ --include='*.php'",
+      "patterns": [
+        {
+          "deprecated": "Symfony\\Component\\HttpKernel\\Event\\GetResponseEvent",
+          "replacement": "Symfony\\Component\\HttpKernel\\Event\\RequestEvent",
+          "severity": "error"
+        },
+        {
+          "deprecated": "Symfony\\Component\\HttpKernel\\Event\\GetResponseForExceptionEvent",
+          "replacement": "Symfony\\Component\\HttpKernel\\Event\\ExceptionEvent",
+          "severity": "error"
+        },
+        {
+          "deprecated": "Symfony\\Component\\HttpKernel\\Event\\PostResponseEvent",
+          "replacement": "Symfony\\Component\\HttpKernel\\Event\\TerminateEvent",
+          "severity": "error"
+        },
+        {
+          "deprecated": "Symfony\\Component\\EventDispatcher\\Event\\b",
+          "replacement": "Symfony\\Contracts\\EventDispatcher\\Event",
+          "severity": "error",
+          "note": "L'Event de base Symfony a changé de namespace. Tous les event subscribers doivent hériter de Symfony\\Contracts\\EventDispatcher\\Event."
+        },
+        {
+          "deprecated": "ContainerAwareCommand",
+          "replacement": "Command (inject services via constructor/DI)",
+          "severity": "warning",
+          "note": "ContainerAwareCommand déprécié. Injecter les services via le constructeur."
+        }
+      ]
+    },
+    "known_module_bugs": {
+      "_comment": "Bugs connus dans des modules contrib lors de la migration D10→D11. Découverts en prod. Auto-fixable.",
+      "bugs": [
+        {
+          "module": "drupal/xls_views_data_export",
+          "affected_versions": ["3.x", "4.x"],
+          "description": "buildResponse() method signature incompatible avec views_data_export 1.8+",
+          "file": "src/Plugin/views/display/XlsDataExport.php",
+          "fix_type": "signature",
+          "fix": {
+            "add_use": "use Drupal\\views_data_export\\BatchProcessingAdapterInterface;",
+            "old_signature": "public static function buildResponse($view_id, $display_id, array $args = [], &$view = [])",
+            "new_signature": "public static function buildResponse($view_id, $display_id, array $args = [], ?BatchProcessingAdapterInterface $batch_processing_adapter = NULL)",
+            "also_update_call": "parent::buildResponse($view_id, $display_id, $args, $batch_processing_adapter)"
+          },
+          "auto_fixable": true,
+          "notes": "Ce bug persiste dans les versions 3.x ET 4.x. Le patch officiel ne s'appliquait pas — nécessite correction manuelle du fichier."
+        },
+        {
+          "module": "drupal/token_views_filter",
+          "affected_versions": ["2.x"],
+          "description": "validateExposed() missing ': void' return type (PHP strict types D11)",
+          "file": "src/TokensDateFilterTrait.php",
+          "fix_type": "return_type",
+          "fix": {
+            "old": "public function validateExposed(&$form, FormStateInterface $form_state) {",
+            "new": "public function validateExposed(&$form, FormStateInterface $form_state): void {"
+          },
+          "auto_fixable": true
+        }
+      ]
+    },
+    "library_api_changes": {
+      "_comment": "Changements d'API de librairies PHP tierces lors du passage D10→D11.",
+      "phpexcel_to_phpspreadsheet": {
+        "old_library": "phpoffice/phpexcel",
+        "new_library": "phpoffice/phpspreadsheet",
+        "severity": "error",
+        "grep_command": "grep -rn 'PHPExcel_IOFactory\\|PHPExcel_\\|use PHPExcel\\|new PHPExcel' MODULE_PATH/ --include='*.php'",
+        "namespace_changes": [
+          {"old": "PHPExcel_IOFactory", "new": "PhpOffice\\PhpSpreadsheet\\IOFactory"},
+          {"old": "PHPExcel_Worksheet", "new": "PhpOffice\\PhpSpreadsheet\\Worksheet\\Worksheet"},
+          {"old": "PHPExcel", "new": "PhpOffice\\PhpSpreadsheet\\Spreadsheet"}
+        ],
+        "note": "phpoffice/phpexcel est abandonné. D11 avec xls_views_data_export 4.x exige phpoffice/phpspreadsheet 2.x. APIs incompatibles."
+      }
+    },
+    "removed_from_core_d11": {
+      "_comment": "Modules et thèmes retirés du core Drupal 11 qui nécessitent un équivalent contrib.",
+      "modules": [
+        {"name": "tour",        "composer": "drupal/tour",       "note": "Retiré du core D11. Ajouter si utilisé."},
+        {"name": "ckeditor",    "composer": null,                "note": "CKEditor 4 retiré. Migrer vers CKEditor 5 (inclus dans D11 core)."},
+        {"name": "aggregator",  "composer": "drupal/aggregator", "note": "Retiré. Utiliser drupal/aggregator contrib."},
+        {"name": "color",       "composer": "drupal/color",      "note": "Retiré. Utiliser CSS variables ou theme settings custom."},
+        {"name": "rdf",         "composer": "drupal/rdf",        "note": "Retiré. Utiliser drupal/rdf contrib si besoin."},
+        {"name": "hal",         "composer": "drupal/hal",        "note": "Retiré. Utiliser JSON:API ou drupal/hal contrib."},
+        {"name": "quickedit",   "composer": null,                "note": "Retiré. Utiliser Layout Builder pour édition en place."},
+        {"name": "classy",      "composer": null,                "note": "Retiré. Migrer le theme base vers stable9 ou olivero."},
+        {"name": "stable",      "composer": null,                "note": "Retiré. Utiliser stable9."},
+        {"name": "sdc",         "composer": null,                "note": "Single Directory Components retiré du core (postUpdate system_post_update_sdc_uninstall)."}
+      ],
+      "grep_command": "grep -E '\"(tour|ckeditor|aggregator|color|rdf|hal|quickedit|classy|stable)\"' web/sites/*/settings.php config/*/sync/core.extension.yml 2>/dev/null"
+    },
+    "drush_upgrade": {
+      "min_version": 13,
+      "current_max_compatible": 12,
+      "note": "Drush 12 a un support limité de D11. Mettre à jour drush/drush vers ^13 en même temps que le core.",
+      "composer_update": "\"drush/drush\": \"^13\""
+    },
+    "annotations_to_attributes": [
+      { "deprecated": "@Block(",         "replacement": "#[Block(",         "type": "string", "severity": "warning", "use": "Drupal\\Core\\Block\\Attribute\\Block",         "note": "D11: toujours supporté. D12: supprimé." },
+      { "deprecated": "@Action(",        "replacement": "#[Action(",        "type": "string", "severity": "warning", "use": "Drupal\\Core\\Action\\Attribute\\Action" },
+      { "deprecated": "@FieldType(",     "replacement": "#[FieldType(",     "type": "string", "severity": "warning", "use": "Drupal\\Core\\Field\\Attribute\\FieldType" },
+      { "deprecated": "@FieldWidget(",   "replacement": "#[FieldWidget(",   "type": "string", "severity": "warning", "use": "Drupal\\Core\\Field\\Attribute\\FieldWidget" },
+      { "deprecated": "@FieldFormatter(","replacement": "#[FieldFormatter(","type": "string", "severity": "warning", "use": "Drupal\\Core\\Field\\Attribute\\FieldFormatter" },
+      { "deprecated": "@Filter(",        "replacement": "#[Filter(",        "type": "string", "severity": "warning", "use": "Drupal\\filter\\Attribute\\Filter" },
+      { "deprecated": "@ViewsField(",    "replacement": "#[ViewsField(",    "type": "string", "severity": "warning", "use": "Drupal\\views\\Attribute\\ViewsField" },
+      { "deprecated": "@Plugin(",        "replacement": "#[Plugin(",        "type": "string", "severity": "warning" }
+    ],
+    "composer_json": {
+      "core_constraint_pattern": "\"drupal/core(?:-recommended|-composer-scaffold|-project-message)?\":\\s*\"[^\"]*10[^\"]*\"",
+      "replacement_template": "drupal/core-recommended: ^11, drupal/core-composer-scaffold: ^11, drupal/core-project-message: ^11",
+      "scaffold_file_mapping_format": "Use `false` (not object) to exclude scaffold files: `\"[web-root]/.htaccess\": false`"
+    },
+    "info_yml": {
+      "core_version_requirement": "^10 || ^11",
+      "pattern": "core_version_requirement:\\s*\\^10[^|]",
+      "replacement": "core_version_requirement: ^10 || ^11"
+    },
+    "twig": [
+      { "deprecated": "{% spaceless %}",    "replacement": "{% apply spaceless %}...{% endapply %}", "severity": "error" },
+      { "deprecated": "{% endspaceless %}", "replacement": "{% endapply %}",                         "severity": "error" },
+      { "deprecated": "sameas",             "replacement": "same as",                                "severity": "error" },
+      { "deprecated": "divisibleby",        "replacement": "divisible by",                           "severity": "error" }
+    ]
+  },
+  "D11_to_D12": {
+    "_comment": "À compléter lors de la sortie de Drupal 12.",
+    "php_functions": [],
+    "annotations_to_attributes": {
+      "_note": "En D12, TOUTES les annotations seront supprimées. La migration annotations→attributes de D11 devient obligatoire."
+    }
+  }
+}
