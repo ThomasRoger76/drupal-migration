@@ -45,6 +45,23 @@ Les deux sujets partagent le terme "migration" dans l'écosystème Drupal — ce
 | Références circulaires (stubs) | `migration_lookup` + `no_stub: false` + `--update` | [advanced-patterns.md](advanced-patterns.md) |
 | Migration D7 → D10 multi-entités (ordre) | Groupe taxonomies → médias → users → paragraphs → nodes | [advanced-patterns.md](advanced-patterns.md) |
 | Rollback + nettoyage fichiers orphelins | `migrate:rollback` + nettoyage `file.usage` | [advanced-patterns.md](advanced-patterns.md) |
+| Migration D7→D10 complète (rôles, vocabs, users, fichiers, nœuds) | Pipeline 10 étapes avec YAML complets | [d7-complete-migration.md](d7-complete-migration.md) |
+| Configurer la connexion DB D7 dans settings.php | `$databases['migrate']['default']` | [d7-complete-migration.md](d7-complete-migration.md) |
+| Ordre impératif des migrations D7 | Rôles → Vocabs → Terms → Fichiers → Users → Nœuds | [d7-complete-migration.md](d7-complete-migration.md) |
+| Groupe de migrations (`migrate_plus`) exécuté en une commande | `migrate_plus.migration_group` + `--execute-dependencies` | [d7-complete-migration.md](d7-complete-migration.md) |
+| Tester la connexion DB D7 depuis Drush | `drush php:eval` + `Database::getConnection('default', 'migrate')` | [d7-complete-migration.md](d7-complete-migration.md) |
+| Compter les items importés / en erreur | `$map->importedCount()` + `$map->errorCount()` | [d7-complete-migration.md](d7-complete-migration.md) |
+| Migrer un champ multi-valeurs (gallery, paragraphs) | `sub_process` plugin | [process-plugins-advanced.md](process-plugins-advanced.md) |
+| Itérer sur un tableau de valeurs simples | `iterator` plugin | [process-plugins-advanced.md](process-plugins-advanced.md) |
+| Aplatir un tableau imbriqué `[[v1],[v2]]` → `[v1,v2]` | `flatten` plugin | [process-plugins-advanced.md](process-plugins-advanced.md) |
+| Combiner plusieurs sources en un seul champ | `merge` + `concat` plugins | [process-plugins-advanced.md](process-plugins-advanced.md) |
+| Sauter un champ vide sans ignorer toute la row | `skip_on_empty` avec `method: process` | [process-plugins-advanced.md](process-plugins-advanced.md) |
+| Sauter toute la row si une clé source est absente | `skip_row_if_not_set` | [process-plugins-advanced.md](process-plugins-advanced.md) |
+| Mapper les formats de texte D7 (filtered_html → basic_html) | `static_map` plugin | [process-plugins-advanced.md](process-plugins-advanced.md) |
+| Appliquer `trim`, `strtolower`, `strip_tags` dans un YAML | `callback` plugin | [process-plugins-advanced.md](process-plugins-advanced.md) |
+| Références circulaires avec stubs entre migrations | `migration_lookup` + `no_stub: false` + relancer `--update` | [process-plugins-advanced.md](process-plugins-advanced.md) |
+| Custom process plugin avec logging tous les 100 items | `ProcessPluginBase` + `\Drupal::logger()` | [process-plugins-advanced.md](process-plugins-advanced.md) |
+| Convertir un chemin D7 en URI interne D10 | Custom plugin `D7PathToUri` | [process-plugins-advanced.md](process-plugins-advanced.md) |
 
 ---
 
