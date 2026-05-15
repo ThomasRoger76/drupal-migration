@@ -1,18 +1,36 @@
-# drupal-migration
+# drupal-migration — Claude Code Skill
 
-Skill complet pour les deux types de "migration" en Drupal :
+Skill complet pour tout ce qui touche à la "migration" Drupal — deux approches complémentaires :
 
-## Sous-fichiers
+## 1. Pipeline d'automatisation multi-agents (`/drupal-migrate`)
 
-| Fichier | Sujet |
-|---------|-------|
-| [SKILL.md](SKILL.md) | Point d'entrée — Quick Decision Table, anti-patterns |
-| [version-upgrade.md](version-upgrade.md) | Upgrade majeur D8→D9→D10→D11 (Composer, Drush, Rector) |
-| [migrate-api.md](migrate-api.md) | Migrate API — importer des données (CSV, D7, XML) |
-| [deprecated-code.md](deprecated-code.md) | Corriger le code déprécié (Rector, drupal-check, PHPStan) |
-| [lessons.md](lessons.md) | Pièges réels découverts en projet |
+Pipeline automatisé de 10 agents pour les upgrades de version majeure (D9→D10→D11→D12) :
 
-## Distinction fondamentale
+| Agent | Rôle |
+|-------|------|
+| `env-detector` | Détecte l'environnement, versions PHP/DB, modules |
+| `pre-flight` | Backup DB, export config, protection scaffold |
+| `patch-manager` | Valide les patches Composer avant migration |
+| `compatibility-analyzer` | Scanne le code custom (dépréciations, Symfony 7) |
+| `code-fixer` | Auto-corrige les APIs dépréciées |
+| `test-runner` | Snapshots HTML, tests création/édition contenu |
+| `updater` | composer update + drush updb + checklist déploiement |
+| `config-doctor` | Santé des Views, config_split, entity definitions |
+| `db-health` | Version MariaDB/MySQL, support JSON, tables orphelines |
+| `rollback-manager` | Restauration automatique sur échec critique |
 
-- **Version Upgrade** = faire évoluer le *code* du projet (D8→D10)
-- **Migrate API** = importer des *données* depuis une source externe
+→ Voir `agents/` pour la documentation de chaque agent.
+
+## 2. Référence technique Migrate API
+
+Documentation de référence pour les migrations de données (CSV, JSON, D7→D10, multilingue) :
+
+| Fichier | Contenu |
+|---------|---------|
+| [SKILL.md](SKILL.md) | Quick Decision Table (49 entrées), anti-patterns |
+| [version-upgrade.md](version-upgrade.md) | Guide D8→D9→D10→D11, Rector, CKEditor 4→5 |
+| [migrate-api.md](migrate-api.md) | Pipeline Source→Process→Destination, YAML, drush |
+| [custom-plugins.md](custom-plugins.md) | Plugins Source/Process/Destination en PHP |
+| [advanced-patterns.md](advanced-patterns.md) | Paragraphs, incrémental, MigrateEvents, groupes |
+| [multilingual-migration.md](multilingual-migration.md) | Migration multilingue, langcode, translations |
+| [deprecated-code.md](deprecated-code.md) | Rector, drupal-check, PHPStan, checklists D10/D11 |
