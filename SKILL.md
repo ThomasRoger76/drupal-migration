@@ -89,6 +89,37 @@ Les deux sujets partagent le terme "migration" dans l'écosystème Drupal — ce
 
 ---
 
+## Pipeline d'Automatisation Multi-Agents
+
+Pour les upgrades de version majeure automatisés (D9→D10→D11→D12) :
+
+```bash
+/drupal-migrate    # Migration majeure complète (D10→D11, D11→D12)
+/drupal-update     # Patches sécurité et mises à jour mineures
+/drupal-status     # Analyse lecture seule — sans modification
+/drupal-dry-run    # Simulation complète sans changement
+/drupal-rollback   # Restauration depuis le dernier snapshot
+```
+
+**Pipeline 10 agents :**
+
+| Agent | Rôle |
+|-------|------|
+| `env-detector` | Détecte PHP, DB, modules, thèmes, CI |
+| `pre-flight` | Backup DB, export config, branche migration |
+| `patch-manager` | Valide les patches Composer avant/après |
+| `compatibility-analyzer` | Scanne dépréciations, Symfony 7, modules |
+| `code-fixer` | Auto-corrige annotations→attributes, API deprecated |
+| `test-runner` | Snapshots HTML, tests création/édition contenu |
+| `updater` | composer update + drush updb + checklist |
+| `config-doctor` | Views cassées, config_split, entity definitions |
+| `db-health` | Version MariaDB, JSON support, tables orphelines |
+| `rollback-manager` | Restauration automatique sur échec critique |
+
+→ Documentation complète dans `agents/`
+
+---
+
 ## See Also
 
 - `drupal-core` — Architecture modules, hooks, Plugin system, EntityAPI
