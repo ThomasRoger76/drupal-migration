@@ -1,6 +1,6 @@
 ---
 name: drupal-migration
-description: Use when upgrading Drupal core versions (D8→D9→D10→D11), fixing deprecated APIs with Rector, planning data migrations with the Migrate API (source/process/destination plugins, migrate_plus, migrate_tools), migrating from Drupal 7/8, importing CSV/XML data, or running drush migrate commands in Drupal 8-11+
+description: Use when upgrading Drupal core versions (D8→D9→D10→D11), fixing deprecated APIs with Rector, planning or executing data migrations with the Migrate API (source/process/destination plugins, migrate_plus, migrate_tools), migrating from Drupal 7/8, importing CSV/XML/JSON data, or running drush migrate commands. Also triggers on /drupal-migrate, /drupal-update, /drupal-status, /drupal-rollback, "migrer drupal", "mise à jour drupal", "upgrade drupal", "montée de version drupal". Multi-agent pipeline with backup, compatibility analysis, auto-fix, testing, and rollback. Supports DDEV, Lando, Docker, and classic local installs in Drupal 8-11+
 ---
 
 # Drupal Migration — Référence Complète
@@ -62,6 +62,39 @@ Les deux sujets partagent le terme "migration" dans l'écosystème Drupal — ce
 | Références circulaires avec stubs entre migrations | `migration_lookup` + `no_stub: false` + relancer `--update` | [process-plugins-advanced.md](process-plugins-advanced.md) |
 | Custom process plugin avec logging tous les 100 items | `ProcessPluginBase` + `\Drupal::logger()` | [process-plugins-advanced.md](process-plugins-advanced.md) |
 | Convertir un chemin D7 en URI interne D10 | Custom plugin `D7PathToUri` | [process-plugins-advanced.md](process-plugins-advanced.md) |
+
+---
+
+## Support Environnements Locaux
+
+Le pipeline multi-agents supporte automatiquement les 3 environnements les plus courants :
+
+| Environnement | Détection | Préfixe de commande |
+|---------------|-----------|---------------------|
+| **DDEV** | `ddev describe` réussit | `ddev` |
+| **Lando** | `.lando.yml` présent à la racine | `lando` |
+| **Docker Compose custom** | `docker-compose.yml` présent | `docker compose exec php` |
+| **Local classique** | Aucun des précédents | `./vendor/bin/` |
+
+L'agent `env-detector` détecte automatiquement l'environnement au démarrage.
+
+**Lando — commandes clés :**
+```bash
+lando drush updb -y
+lando drush cim -y
+lando composer require drupal/core-recommended:^11 --update-with-dependencies
+lando composer install
+```
+
+---
+
+## Roadmap D12
+
+Drupal 12 est en cours de développement (sortie prévue 2026). Préparer dès maintenant :
+- PHP 8.4+ requis (Drupal 12 suivra le cycle PHP)
+- Symfony 8.x (migration depuis 7.x)
+- Suppression des API dépréciées en D11
+- Commencer par appliquer Rector avec le set D11 pour garantir la compatibilité D12
 
 ---
 
