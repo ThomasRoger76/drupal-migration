@@ -1,56 +1,82 @@
 ---
 name: drupal-migration lessons
-description: Lessons learned from real migration projects
+description: Pièges et incidents découverts en projets de migration et upgrade Drupal réels.
 ---
 
-# Lessons — drupal-migration
+# Leçons — drupal-migration
 
----
-
-## [2026-05-14] D8.9 → D10 : `$config_directories` est le premier bloquant
-
-**Contexte :** Projet Drupal 8.9.x. Lors du premier `composer install` après bump vers D9, Drupal crashait avec une erreur fatale dès le bootstrap — avant même `drush updb`.
-
-**Cause :** `settings.php` contenait `$config_directories['sync']` (syntaxe D8). Cette clé est supprimée en D9 et provoque une `\Drupal\Core\Site\Settings` exception avant que la page s'affiche.
-
-**Règle :** Avant tout upgrade D8→D9, chercher et remplacer systématiquement dans `settings.php` et `settings.local.php` :
-```bash
-grep -r "config_directories" web/sites/
-# Remplacer :
-# $config_directories['sync'] = '../config/sync';
-# Par :
-# $settings['config_sync_directory'] = '../config/sync';
-```
+Incidents et pièges rencontrés en projets réels de migration de version et de données. Format : symptôme → cause → correction → prévention.
 
 ---
 
-## [2026-05-14] Ne jamais sauter D8→D10 directement
+## Comment ajouter une leçon
 
-**Contexte :** Tentative de mise à jour directe D8→D10 pour gagner du temps. Résultat : 47 `hook_update_N` manquants, base de données incohérente, rollback forcé.
-
-**Cause :** Les scripts de mise à jour s'enchaînent séquentiellement (`hook_update_8001`, `hook_update_9001`, `hook_update_10001`). Sauter D9 laisse des transformations de schéma non appliquées. Certains modules contrib ne gèrent pas non plus les migrations "en saut".
-
-**Règle :** Toujours respecter les étapes intermédiaires : D8.9.x → D9.5.x → D10.x. Vérifier avec `drush core:requirements` après chaque étape.
-
----
-
-## [2026-05-14] CKEditor 4→5 : les text formats custom sont souvent cassés
-
-**Contexte :** Après upgrade D9→D10, l'éditeur de texte n'affichait plus les boutons de toolbar dans les back-offices CCI. `drush updb` avait semblé réussir.
-
-**Cause :** Le `hook_update_N` de migration CKEditor 4→5 gère les configurations core (`basic_html`, `full_html`). Mais les text formats *custom* (ex: `cci_editeur_avance`) n'avaient pas de mapping automatique pour leurs plugins CKEditor custom. Drupal les migraient partiellement, laissant des `editor.editor.cci_editeur_avance.yml` invalides.
-
-**Règle :** Après upgrade D9→D10, vérifier chaque text format custom dans `/admin/config/content/formats`. Inspecter les fichiers `config/sync/editor.editor.*.yml` dans le diff git et tester l'éditeur manuellement pour chaque format.
+Après chaque incident de migration :
+1. Identifier si le skill aurait pu prévenir l'erreur
+2. Ajouter une entrée avec date, symptôme, cause, correction, prévention
+3. Mettre à jour CHANGELOG.md
 
 ---
 
-## [2026-05-14] migrate:import sur une migration sans groupe — table de mapping orpheline
+### 2026-05-14 — `$config_directories` fatal D9 — bootstrap impossible
 
-**Contexte :** Lors d'un import CSV, une migration lancée sans `migration_group` ne montrait pas dans `drush migrate:status` après un rollback partiel. La table `migrate_map_import_articles` restait en base avec des entrées obsolètes.
+- **Symptôme :** Après bump vers D9, PHP Fatal à chaque requête avant même que Drupal charge
+- **Cause :** `$config_directories['sync']` dans `settings.php` (syntaxe D8) supprimée en D9 — `\Drupal\Core\Site\Settings` exception au bootstrap
+- **Correct :** Remplacer dans `settings.php` et `settings.local.php` : `$config_directories['sync']` → `$settings['config_sync_directory']`
+- **Prévention :** `grep -r "config_directories" web/sites/` avant tout upgrade D8→D9. Agent compatibility-analyzer le détecte automatiquement.
 
-**Cause :** Sans groupe défini, `migrate_tools` ne liste que les migrations déclarées dans un groupe. La table de mapping persiste même après rollback si des erreurs interrompent le processus.
+### 2026-05-14 — Sauter D8→D10 directement — 47 hook_update_N manquants
 
-**Règle :**
-1. Toujours définir `migration_group` dans les migrations YAML.
-2. Après un rollback forcé, vérifier : `drush migrate:reset-status {migration_id}` avant de relancer.
-3. En cas de table corrompue : `drush php:eval "\Drupal::database()->truncate('migrate_map_import_articles')->execute();"` puis relancer l'import depuis zéro.
+- **Symptôme :** Base de données incohérente après upgrade direct D8→D10, rollback forcé
+- **Cause :** Les scripts de mise à jour s'enchaînent séquentiellement — sauter D9 laisse des transformations de schéma non appliquées
+- **Correct :** Rollback complet. Respecter D8.9.x → D9.5.x → D10.x
+- **Prévention :** Règle absolue : jamais de saut de version majeure. Vérifier `drush core:requirements` après chaque étape.
+
+### 2026-05-14 — CKEditor 4→5 — text formats custom cassés
+
+- **Symptôme :** Après upgrade D9→D10, toolbar CKEditor vide pour les formats custom. `drush updb` avait semblé réussir.
+- **Cause :** `hook_update_N` migrate automatiquement les formats core (`basic_html`, `full_html`) mais pas les formats personnalisés
+- **Correct :** Vérifier `/admin/config/content/formats`. Inspecter `config/sync/editor.editor.*.yml` dans le diff git. Corriger les YAMLs manuellement ou via `drush config:edit`.
+- **Prévention :** Après D9→D10, tester CHAQUE format de texte custom manuellement. Ajouter dans la checklist de recette.
+
+### 2026-05-14 — migrate:import sans groupe — table de mapping orpheline
+
+- **Symptôme :** Migration non visible dans `drush migrate:status`. Table `migrate_map_*` persistante avec entrées obsolètes après rollback.
+- **Cause :** Sans `migration_group`, `migrate_tools` ne liste pas la migration. La table de mapping persiste si le rollback est interrompu.
+- **Correct :** `drush migrate:reset-status {id}` puis `drush php:eval "\Drupal::database()->truncate('migrate_map_ID')->execute();"` puis réimporter depuis zéro.
+- **Prévention :** Toujours définir `migration_group` dans les YAML. Vérifier le statut avant relance.
+
+### 2026-05-16 — Modules contrib sans version D10 — composer.json bloqué
+
+- **Symptôme :** `composer require drupal/core-recommended:^10` échoue avec "could not be resolved"
+- **Cause :** Un module contrib installé n'a pas de release compatible D10. `composer why-not drupal/core:^10` révèle le coupable.
+- **Correct :** `composer why-not drupal/core:^10` → identifier le module → chercher une version D10 sur drupal.org → si inexistant : désinstaller et trouver une alternative
+- **Prévention :** `drush upgrade_status:analyze --all` avant tout upgrade. L'agent compatibility-analyzer le fait automatiquement.
+
+### 2026-05-16 — PHP 8.3 requis D11 — modules custom avec typage insuffisant
+
+- **Symptôme :** Fatal error sur des méthodes qui manquent de `: void` return type après upgrade D10→D11
+- **Cause :** D11 enforce les return types sur les méthodes overridées (ex: `buildForm`, `submitForm`, `validateForm`)
+- **Correct :** Ajouter `: void` aux méthodes `buildForm()`, `submitForm()`, `validateForm()` + corriger tous les overrides via Rector : `vendor/bin/rector process web/modules/custom`
+- **Prévention :** L'agent compatibility-analyzer scan spécifiquement ces patterns (étape 5f). Lancer Rector --dry-run avant l'upgrade.
+
+### 2026-05-16 — Backup DB manquant avant `drush updb` — perte irrécupérable
+
+- **Symptôme :** `hook_update_N` échoue à mi-chemin, DB dans un état intermédiaire incohérent, pas de rollback possible
+- **Cause :** Pas de dump DB avant `drush updb`. Certains updates sont partiellement appliqués.
+- **Correct :** Restaurer depuis le backup précédent (si disponible). Sinon : intervention manuelle table par table.
+- **Prévention :** Le pre-flight agent fait automatiquement `drush sql:dump --gzip`. Ne jamais lancer `drush updb` en production sans backup vérifié.
+
+### 2026-05-16 — Annotations → Attributes D11 — module non découvert
+
+- **Symptôme :** Block plugin ou Service custom non détecté après upgrade D10→D11
+- **Cause :** D11 a déprécié les annotations `@Block(...)` — sans migration vers `#[Block(...)]`, le plugin est ignoré silencieusement dans certains contextes
+- **Correct :** `vendor/bin/rector process web/modules/custom --dry-run` pour voir toutes les migrations d'annotations. Appliquer avec `vendor/bin/rector process web/modules/custom`
+- **Prévention :** L'agent code-fixer gère automatiquement annotations→attributes. Vérifier dans l'UI Drupal que les blocs/plugins apparaissent après upgrade.
+
+### 2026-05-16 — Migration D7 — paragraphes perdus après rollback partiel
+
+- **Symptôme :** Après un `drush migrate:rollback --all`, des entités `paragraph` orphelines persistent en DB sans nœud parent
+- **Cause :** Le rollback de `d7_node` supprime les nœuds mais pas automatiquement les paragraphes orphelins (table `paragraphs_item_revision`)
+- **Correct :** `drush php:eval` pour trouver et supprimer les paragraphes orphelins + `drush php:eval "\Drupal::entityTypeManager()->getStorage('paragraph')->delete()"` avec requête filtrée
+- **Prévention :** Toujours rollback dans l'ordre inverse de l'import : nœuds → paragraphes → taxonomies → users. Utiliser les groupes de migration avec `--execute-dependencies`.
