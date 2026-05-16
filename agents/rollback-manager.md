@@ -149,11 +149,13 @@ To rollback manually:
 - If composer install fails after restore: `${CMD} composer install --ignore-platform-reqs`
 - If site still down after rollback: print manual recovery steps, do not retry automatically
 
-## Validation
+## Validation Post-Rollback
 
 ```bash
-wc -l /home/thomasroger/.claude/skills/drupal-migration/agents/rollback-manager.md
-head -3 /home/thomasroger/.claude/skills/drupal-migration/agents/rollback-manager.md
+# Vérifier que le rollback a réussi
+${CMD} drush status | grep "Drupal version"
+echo "Version attendue : SOURCE_VERSION"
+# Vérifier l'accès HTTP
+SITE_URL=$(${CMD} drush php:eval "echo \Drupal::request()->getSchemeAndHttpHost();" 2>/dev/null | tr -d '\r\n')
+curl -s -o /dev/null -w "HTTP: %{http_code}\n" "$SITE_URL/"
 ```
-
-Expected: >60 lignes, ligne 1 = `---`

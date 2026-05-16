@@ -898,16 +898,15 @@ If site down / admin 500 → invoke rollback-manager immediately.
 - Search API not indexed → re-index once, retry
 - diff not available → compare file sizes + grep for error patterns
 
-## Validation
+## Validation Post-Exécution
 
 ```bash
-wc -l /home/thomasroger/.claude/skills/drupal-migration/agents/test-runner.md
-head -3 /home/thomasroger/.claude/skills/drupal-migration/agents/test-runner.md
-```
+# Vérifier que les fichiers de baseline et validation ont été créés
+ls -la .drupal-migration/baseline/
+ls -la .drupal-migration/validate/
+cat .drupal-migration/comparison-report.md | head -30
 
-## Commit
-
-```bash
-git -C /home/thomasroger/.claude add skills/drupal-migration/agents/test-runner.md
-git -C /home/thomasroger/.claude commit -m "feat: add test-runner agent for drupal-migration skill"
+# Vérifier le statut Drupal après migration
+${CMD} drush status | grep "Drupal version"
+${CMD} drush core:requirements --severity=2
 ```

@@ -348,16 +348,14 @@ Return:
 - Config import mismatch → note in report, non-blocking
 - Site 500 after update → immediate rollback-manager invocation
 
-## Validation
+## Validation Post-Exécution
 
 ```bash
-wc -l /home/thomasroger/.claude/skills/drupal-migration/agents/updater.md
-head -3 /home/thomasroger/.claude/skills/drupal-migration/agents/updater.md
-```
-
-## Commit
-
-```bash
-git -C /home/thomasroger/.claude add skills/drupal-migration/agents/updater.md
-git -C /home/thomasroger/.claude commit -m "feat: add updater agent for drupal-migration skill"
+# Vérifier que la migration s'est bien passée
+${CMD} drush status | grep "Drupal version"
+${CMD} drush core:requirements --severity=2
+${CMD} drush pm:security --format=json | jq 'length'
+HTTP=$(curl -s -o /dev/null -w "%{http_code}" "$(${CMD} drush php:eval "echo \Drupal::request()->getSchemeAndHttpHost();")/")
+echo "HTTP status: $HTTP"
+[ "$HTTP" = "200" ] || echo "⚠️ Site inaccessible — envisager le rollback"
 ```
