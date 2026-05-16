@@ -175,6 +175,5 @@ Pour les upgrades de version majeure automatisés (D9→D10→D11→D12) :
 - `drupal-core` — Architecture modules, hooks, Plugin system, EntityAPI
 - `drupal-config` — Config Management, `drush cim`, UUID conflicts
 - `drupal-testing` — PHPUnit, tests de régression post-upgrade
-- `composer` — Patches composer, dépôts privés, optimisation autoloader
-- `rector` — Rector PHP — refactoring automatique, dry-run, sets
-- `drush` — Drush CLI — automatisation, aliases, déploiement
+- `drupal-composer` — Patches Composer, version constraints, dépendances lors de l'upgrade
+- `drupal-deployment` — drush deploy, drush aliases, déploiement post-migration
