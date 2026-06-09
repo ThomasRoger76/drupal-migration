@@ -401,15 +401,15 @@ Exemple de plugin process custom qui trace les items migrés avec logging intég
 
 namespace Drupal\mon_projet_migration\Plugin\migrate\process;
 
+use Drupal\migrate\Attribute\MigrateProcess;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
 
 /**
  * Plugin process qui loggue la progression tous les N items.
- *
- * @MigrateProcess("counter_tracker")
  */
+#[MigrateProcess(id: 'counter_tracker')]
 class CounterTracker extends ProcessPluginBase {
 
   private static int $count = 0;
@@ -457,15 +457,15 @@ Plugin pour transformer un chemin D7 en URI Drupal 10 valide.
 
 namespace Drupal\mon_projet_migration\Plugin\migrate\process;
 
+use Drupal\migrate\Attribute\MigrateProcess;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
 
 /**
  * Convertit un chemin D7 (ex: 'node/42') en URI interne D10 ('internal:/node/42').
- *
- * @MigrateProcess("d7_path_to_uri")
  */
+#[MigrateProcess(id: 'd7_path_to_uri')]
 class D7PathToUri extends ProcessPluginBase {
 
   public function transform($value, MigrateExecutableInterface $migrate_executable, Row $row, string $destination_property): mixed {

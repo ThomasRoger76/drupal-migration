@@ -240,7 +240,7 @@ drush state:set system.maintenance_mode 0
 ## Notes
 - Migration branch: migration/D{SOURCE}-to-D{TARGET}-YYYY-MM-DD
 - Git tag (pre-migration): pre-migration-YYYY-MM-DD
-- DB backup: backups/pre-migration-YYYY-MM-DD/db.sql.gz.gz
+- DB backup: backups/pre-migration-YYYY-MM-DD/db.sql.gz
 - Migration report: MIGRATION-REPORT-YYYY-MM-DD.md
 ```
 

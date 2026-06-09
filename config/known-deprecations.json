@@ -154,9 +154,9 @@
         {"name": "hal",         "composer": "drupal/hal",        "note": "Retiré. Utiliser JSON:API ou drupal/hal contrib."},
         {"name": "quickedit",   "composer": null,                "note": "Retiré. Utiliser Layout Builder pour édition en place."},
         {"name": "classy",      "composer": null,                "note": "Retiré. Migrer le theme base vers stable9 ou olivero."},
-        {"name": "stable",      "composer": null,                "note": "Retiré. Utiliser stable9."},
-        {"name": "sdc",         "composer": null,                "note": "Single Directory Components retiré du core (postUpdate system_post_update_sdc_uninstall)."}
+        {"name": "stable",      "composer": null,                "note": "Retiré. Utiliser stable9."}
       ],
+      "_note_sdc": "Le module 'sdc' (Single Directory Components) a été un module expérimental en D10.1-10.2, stabilisé et FUSIONNÉ dans le core en D10.3 : ses fonctionnalités ont migré dans le système de rendu du core et le module 'sdc' a été désinstallé (system_post_update_sdc_uninstall) car redondant. Ce N'EST PAS une perte de fonctionnalité — SDC reste pleinement disponible en D11. Aucune action contrib requise.",
       "grep_command": "grep -E '\"(tour|ckeditor|aggregator|color|rdf|hal|quickedit|classy|stable)\"' web/sites/*/settings.php config/*/sync/core.extension.yml 2>/dev/null"
     },
     "drush_upgrade": {

@@ -1,6 +1,6 @@
 ---
 name: drupal-migration
-description: Use when upgrading Drupal core versions (D8→D9→D10→D11), fixing deprecated APIs with Rector, planning or executing data migrations with the Migrate API (source/process/destination plugins, migrate_plus, migrate_tools), migrating from Drupal 7/8, importing CSV/XML/JSON data, or running drush migrate commands. Also triggers on /drupal-migrate, /drupal-update, /drupal-status, /drupal-rollback, "migrer drupal", "mise à jour drupal", "upgrade drupal", "montée de version drupal". Multi-agent pipeline with backup, compatibility analysis, auto-fix, testing, and rollback. Supports DDEV, Lando, Docker, and classic local installs in Drupal 8-11+
+description: Use when upgrading Drupal core versions (D8→D9→D10→D11), fixing deprecated APIs with Rector, planning or executing data migrations with the Migrate API (source/process/destination plugins, migrate_plus, migrate_tools), migrating from Drupal 7/8, importing CSV/XML/JSON data, or running drush migrate commands. Also triggers on /drupal-migrate, /drupal-update, /drupal-status, /drupal-rollback, "migrer drupal", "mise à jour drupal", "upgrade drupal", "montée de version drupal". Multi-agent pipeline with backup, compatibility analysis, auto-fix, testing, and rollback. Docker Compose (docker compose exec php) is the reference environment; also supports classic local installs, DDEV, and Lando in Drupal 8-11+
 ---
 
 # Drupal Migration — Référence Complète
@@ -67,23 +67,23 @@ Les deux sujets partagent le terme "migration" dans l'écosystème Drupal — ce
 
 ## Support Environnements Locaux
 
-Le pipeline multi-agents supporte automatiquement les 3 environnements les plus courants :
+Le pipeline multi-agents détecte automatiquement l'environnement et **paramètre toutes les commandes** via `command_prefix` (`${CMD}`) — il n'y a aucun préfixe codé en dur. **L'environnement de référence de ce skill est Docker Compose natif** (`docker compose exec php …`), conformément au workflow standard. DDEV et Lando restent supportés comme autres environnements.
 
-| Environnement | Détection | Préfixe de commande |
+| Environnement | Détection | Préfixe de commande (`${CMD}`) |
 |---------------|-----------|---------------------|
-| **DDEV** | `ddev describe` réussit | `ddev` |
-| **Lando** | `.lando.yml` présent à la racine | `lando` |
-| **Docker Compose custom** | `docker-compose.yml` présent | `docker compose exec php` |
-| **Local classique** | Aucun des précédents | `./vendor/bin/` |
+| **Docker Compose** (référence) | `docker-compose.yml` / `compose.yaml` présent | `docker compose exec php` |
+| **Local classique** | Aucun gestionnaire détecté | `` (vide) — `./vendor/bin/drush` direct |
+| DDEV (autre env) | `ddev describe` réussit | `ddev` |
+| Lando (autre env) | `.lando.yml` présent à la racine | `lando` |
 
-L'agent `env-detector` détecte automatiquement l'environnement au démarrage.
+L'agent `env-detector` détecte automatiquement l'environnement au démarrage et écrit `command_prefix` dans `environment.json`. Tous les autres agents lisent cette valeur — aucun ne suppose `ddev`.
 
-**Lando — commandes clés :**
+**Docker Compose — commandes clés (env de référence) :**
 ```bash
-lando drush updb -y
-lando drush cim -y
-lando composer require drupal/core-recommended:^11 --update-with-dependencies
-lando composer install
+docker compose exec php drush updb -y
+docker compose exec php drush cim -y
+docker compose exec php composer require drupal/core-recommended:^11 --update-with-dependencies
+docker compose exec php composer install
 ```
 
 ---

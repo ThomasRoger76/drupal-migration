@@ -13,33 +13,40 @@ Run the following detection sequence. Never skip a step. Output ALL findings to 
 
 ### Step 1 — Detect local environment type
 
-Run these checks IN ORDER and stop at the first match:
+Run these checks IN ORDER and stop at the first match. **Docker Compose is the reference environment** — check it first.
 
 ```bash
-# Check DDEV
+# Check Docker Compose (reference environment)
+ls docker-compose.yml compose.yaml compose.yml 2>/dev/null | head -1 && echo "DOCKER_COMPOSE_FOUND"
+
+# Check DDEV (other env)
 ddev describe --json 2>/dev/null && echo "DDEV_FOUND"
 
-# Check Lando
+# Check Lando (other env)
 lando info --format json 2>/dev/null && echo "LANDO_FOUND"
-
-# Check Docker Compose
-ls docker-compose.yml 2>/dev/null && echo "DOCKER_COMPOSE_FOUND"
 
 # Fallback: local PHP
 php --version 2>/dev/null && echo "LOCAL_PHP"
 ```
 
-Set `environment_type` to: `ddev` | `lando` | `docker` | `local`
+Set `environment_type` to: `docker` | `ddev` | `lando` | `local`.
 
-For DDEV: prefix all drush/composer commands with `ddev`.
-For Lando: prefix with `lando`.
-For local/docker: use direct `php vendor/bin/drush` or `./vendor/bin/drush`.
+Set `command_prefix` (referenced as `${CMD}` by every downstream agent) accordingly:
+
+| environment_type | command_prefix (`${CMD}`) |
+|------------------|---------------------------|
+| `docker` | `docker compose exec php` |
+| `ddev` | `ddev` |
+| `lando` | `lando` |
+| `local` | `` (empty) — call `./vendor/bin/drush` / `composer` directly |
+
+**Never hardcode `ddev` in commands.** Always build commands as `${CMD} drush …` / `${CMD} composer …` so the pipeline is environment-agnostic.
 
 ### Step 2 — Detect Drupal core version
 
 ```bash
-# DDEV example (adapt prefix per environment_type)
-ddev drush status --format=json 2>/dev/null
+# Uses the detected prefix (docker compose exec php / ddev / lando / empty)
+${CMD} drush status --format=json 2>/dev/null
 ```
 
 Extract: `drupal-version`, `php-version`, `db-driver`, `db-version`, `drush-version`, `site-uri`, `root`
@@ -97,7 +104,7 @@ Record: `webpack`, `gulp`, `npm-scripts`, `none` in `environment.json > theme_co
 ### Step 3 — List all modules
 
 ```bash
-ddev drush pm:list --format=json 2>/dev/null
+${CMD} drush pm:list --format=json 2>/dev/null
 ```
 
 Classify each module:

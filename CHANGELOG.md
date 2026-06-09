@@ -1,5 +1,14 @@
 # Changelog — drupal-migration
 
+## v3.1 — 2026-06-09
+
+### Cohérence interne + corrections ciblées
+
+- `process-plugins-advanced.md` : exemples `CounterTracker` et `D7PathToUri` convertis des annotations `@MigrateProcess("id")` vers les attributs PHP `#[MigrateProcess(id: '…')]` (+ `use Drupal\migrate\Attribute\MigrateProcess;`). Aligne ces exemples sur `custom-plugins.md` et `migrate-api.md` (standard D11+). La nuance "annotations Migrate encore fonctionnelles en D11, obligatoires en attribut en D12" reste documentée.
+- `agents/updater.md` : correction de l'extension du chemin de backup dans la section Notes du DEPLOYMENT-CHECKLIST (`db.sql.gz.gz` → `db.sql.gz`), désormais cohérent avec la procédure de rollback et le template `migration-success.md`.
+
+---
+
 ## v3.0 — 2026-05-15 → 2026-05-16
 
 ### Pipeline multi-agents complet + corrections majeures

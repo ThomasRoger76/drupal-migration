@@ -19,7 +19,7 @@ Structure namespace : `Drupal\mon_module\Plugin\migrate\{source|process|destinat
 // src/Plugin/migrate/source/ApiSource.php
 namespace Drupal\mon_module\Plugin\migrate\source;
 
-use Drupal\migrate\Annotation\MigrateSource;
+use Drupal\migrate\Attribute\MigrateSource;
 use Drupal\migrate\Plugin\migrate\source\SourcePluginBase;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\Row;
@@ -36,12 +36,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   endpoint: 'https://api.exemple.com/articles'
  *   page_size: 50
  * @endcode
- *
- * @MigrateSource(
- *   id = "mon_module_api",
- *   source_module = "mon_module",
- * )
  */
+#[MigrateSource(
+  id: 'mon_module_api',
+  source_module: 'mon_module',
+)]
 class ApiSource extends SourcePluginBase {
 
   protected ClientInterface $httpClient;
@@ -225,7 +224,7 @@ destination:
 // src/Plugin/migrate/process/FormatTelephone.php
 namespace Drupal\mon_module\Plugin\migrate\process;
 
-use Drupal\migrate\Annotation\MigrateProcess;
+use Drupal\migrate\Attribute\MigrateProcess;
 use Drupal\migrate\MigrateExecutableInterface;
 use Drupal\migrate\ProcessPluginBase;
 use Drupal\migrate\Row;
@@ -241,9 +240,8 @@ use Drupal\migrate\Row;
  *     source: phone_number
  *     format: fr  # ou 'e164'
  * @endcode
- *
- * @MigrateProcess(id = "format_telephone")
  */
+#[MigrateProcess(id: 'format_telephone')]
 class FormatTelephone extends ProcessPluginBase {
 
   /**
@@ -287,12 +285,10 @@ class FormatTelephone extends ProcessPluginBase {
 ### Process plugin avec gestion de plusieurs valeurs
 
 ```php
-/**
- * @MigrateProcess(
- *   id = "extract_media_id",
- *   handle_multiples = TRUE,
- * )
- */
+#[MigrateProcess(
+  id: 'extract_media_id',
+  handle_multiples: TRUE,
+)]
 class ExtractMediaId extends ProcessPluginBase {
 
   /**
@@ -333,7 +329,7 @@ class ExtractMediaId extends ProcessPluginBase {
 // src/Plugin/migrate/destination/CustomStorage.php
 namespace Drupal\mon_module\Plugin\migrate\destination;
 
-use Drupal\migrate\Annotation\MigrateDestination;
+use Drupal\migrate\Attribute\MigrateDestination;
 use Drupal\migrate\Plugin\migrate\destination\DestinationBase;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\migrate\Row;
@@ -341,9 +337,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Destination plugin vers une table custom.
- *
- * @MigrateDestination(id = "custom_storage")
  */
+#[MigrateDestination(id: 'custom_storage')]
 class CustomStorage extends DestinationBase {
 
   protected \Drupal\Core\Database\Connection $database;
@@ -523,7 +518,7 @@ class FormatTelephoneTest extends KernelTestBase {
 | Ignorer les exceptions HTTP dans la source | Logguer via `idMap->saveMessage()` | Les erreurs silencieuses causent des migrations incomplètes non détectées |
 | Retourner `[]` dans `import()` au lieu des IDs | Toujours retourner les IDs de destination | Sans IDs, le rollback et le suivi sont impossibles |
 | Logique métier complexe dans `prepareRow()` | Déplacer dans un Process plugin | `prepareRow()` est pour le nettoyage simple |
-| Annotations `@MigrateSource` sur D11+ | `#[MigrateSource]` attribute PHP | Annotations dépréciées D11 |
+| Annotations `@MigrateSource` sur D11+ | `#[MigrateSource]` attribute PHP (namespace `Drupal\migrate\Attribute\`) | Les attributs Migrate existent depuis D11.1. Les annotations Migrate restent fonctionnelles en D11 (pas formellement `@deprecated` comme `@Block`), mais les attributs sont le standard pour le nouveau code et obligatoires en D12. |
 
 ---
 

@@ -127,11 +127,8 @@ Expected: > 0 files
 TIMESTAMP=$(date +%Y-%m-%d-%H-%M)
 mkdir -p backups/pre-migration-${TIMESTAMP}
 
-# For DDEV
-ddev drush sql:dump --gzip --result-file=backups/pre-migration-${TIMESTAMP}/db.sql.gz
-
-# For local
-./vendor/bin/drush sql:dump --gzip --result-file=backups/pre-migration-${TIMESTAMP}/db.sql.gz
+# Uses the detected prefix from environment.json (docker compose exec php / ddev / lando / empty)
+${CMD} drush sql:dump --gzip --result-file=backups/pre-migration-${TIMESTAMP}/db.sql.gz
 ```
 
 Verify the file exists and is not empty:

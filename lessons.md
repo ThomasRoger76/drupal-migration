@@ -74,6 +74,13 @@ Après chaque incident de migration :
 - **Correct :** `vendor/bin/rector process web/modules/custom --dry-run` pour voir toutes les migrations d'annotations. Appliquer avec `vendor/bin/rector process web/modules/custom`
 - **Prévention :** L'agent code-fixer gère automatiquement annotations→attributes. Vérifier dans l'UI Drupal que les blocs/plugins apparaissent après upgrade.
 
+### 2026-06-09 — Plugins Migrate : annotation vs attribut — cohérence du standard
+
+- **Symptôme :** Exemples de plugins process custom incohérents — certains en `@MigrateProcess("id")` (annotation), d'autres en `#[MigrateProcess(id: '…')]` (attribut PHP).
+- **Cause :** L'API Migrate a introduit les attributs PHP en D11.1. Les annotations Migrate restent **fonctionnelles** en D11 (elles ne sont pas formellement `@deprecated` comme `@Block`), mais l'attribut est le standard pour tout nouveau code et devient obligatoire en D12.
+- **Correct :** Uniformiser les exemples sur `#[MigrateProcess(id: '…')]` avec `use Drupal\migrate\Attribute\MigrateProcess;`. Garder la nuance documentée (annotations ≠ erreur en D11).
+- **Prévention :** Pour du code écrit aujourd'hui (D11+), utiliser systématiquement les attributs. Ne convertir les projets existants que lors d'un passage Rector ciblé — pas de chasse aux annotations Migrate isolée tant que D11 est la cible.
+
 ### 2026-05-16 — Migration D7 — paragraphes perdus après rollback partiel
 
 - **Symptôme :** Après un `drush migrate:rollback --all`, des entités `paragraph` orphelines persistent en DB sans nœud parent

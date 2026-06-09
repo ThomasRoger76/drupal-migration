@@ -191,8 +191,11 @@ $databases['migrate']['default'] = [
   'prefix' => '',
   'host' => 'localhost',
   'port' => '3306',
-  'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
+  // Depuis D9, le driver mysql vit dans le module mysql, pas dans le core.
+  // Ancien namespace D8 (Drupal\Core\Database\Driver\mysql) supprimé.
+  'namespace' => 'Drupal\\mysql\\Driver\\Database\\mysql',
   'driver' => 'mysql',
+  'autoload' => 'core/modules/mysql/src/Driver/Database/mysql/',
 ];
 ```
 
@@ -530,14 +533,15 @@ drush migrate:messages import_articles --format=json
 
 namespace Drupal\mon_module\Plugin\migrate\source;
 
+use Drupal\migrate\Attribute\MigrateSource;
 use Drupal\migrate\Plugin\migrate\source\SourcePluginBase;
 use Drupal\migrate\Row;
 
-/**
- * @MigrateSource(
- *   id = "mon_source_plugin"
- * )
- */
+// D11.1+ : attribut PHP (namespace Drupal\migrate\Attribute\).
+// Les annotations @MigrateSource restent acceptées en D11, mais obsolètes en D12.
+#[MigrateSource(
+  id: 'mon_source_plugin',
+)]
 class MonSource extends SourcePluginBase {
 
   public function fields(): array {
