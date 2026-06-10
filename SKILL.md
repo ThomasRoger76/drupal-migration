@@ -12,6 +12,8 @@ Ce skill couvre **deux sujets distincts** qu'il ne faut pas confondre :
 1. **Version Upgrade** — Mettre à jour Drupal d'une version majeure à une autre (D8→D9, D9→D10, D10→D11). Il s'agit de faire évoluer le *code et les dépendances* du projet.
 2. **Migrate API** — Importer des *données* depuis une source externe (D7, CSV, XML, JSON) vers Drupal via le pipeline Source → Process → Destination.
 
+> ⚠️ **Drupal 7 est EOL depuis le 5 janvier 2025** (fin du support commercial étendu progressif ensuite) : plus de correctifs de sécurité officiels. Toute migration D7 restante est **urgente** — l'argument décisif côté client. HTTPS obligatoire sur la source D7 pendant la migration (le site est vulnérable).
+
 Les deux sujets partagent le terme "migration" dans l'écosystème Drupal — ce skill les traite séparément et clairement.
 
 ---
